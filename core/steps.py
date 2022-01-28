@@ -19,19 +19,6 @@ ikeyboard = InlineKeyboardMarkup([
 
 
 async def StartSteps(bot: Client, editable: Message):
-    heroku_app = {
-        "name": "",
-        "logo": "",
-        "description": "",
-        "keywords": list(),
-        "repository": "",
-        "website": "",
-        "success_url": "",
-        "env": dict(),
-        "stack": "",
-        "buildpacks": list(),
-        "formation": dict()
-    }
     ## --- Step 1 --- ##
     await editable.edit("**Step 1:**\n"
                         "Send me your Heroku App Name.",
@@ -39,7 +26,20 @@ async def StartSteps(bot: Client, editable: Message):
     input_m: Message = await bot.listen(editable.chat.id, timeout=600)
     if input_m.text.startswith("/"):
         return await input_m.continue_propagation()
-    heroku_app["name"] = input_m.text
+    heroku_app = {
+        'logo': '',
+        'description': '',
+        'keywords': list(),
+        'repository': '',
+        'website': '',
+        'success_url': '',
+        'env': dict(),
+        'stack': '',
+        'buildpacks': list(),
+        'formation': dict(),
+        'name': input_m.text,
+    }
+
     await input_m.delete(True)
     ## --- Step 2 --- ##
     await editable.edit("**Step 2:**\n"
@@ -207,7 +207,11 @@ async def StartSteps(bot: Client, editable: Message):
         return await input_m.continue_propagation()
     elif input_m.photo:
         await editable.edit("Processing Logo ...")
-        logo_jpg = await bot.download_media(input_m, file_name=f"./downloads/logo/{str(editable.chat.id)}/{str(editable.message_id)}/")
+        logo_jpg = await bot.download_media(
+            input_m,
+            file_name=f'./downloads/logo/{editable.chat.id}/{editable.message_id}/',
+        )
+
         resp = upload_file(logo_jpg)
         logo_jpg = f"https://telegra.ph/{resp[0]}"
         heroku_app["logo"] = logo_jpg
@@ -233,7 +237,7 @@ async def StartSteps(bot: Client, editable: Message):
     await input_m.delete(True)
     ## --- Make --- ##
     await editable.edit("Making `app.json` ...")
-    app_json = f"./downloads/{str(editable.chat.id)}/{str(editable.message_id)}/"
+    app_json = f'./downloads/{editable.chat.id}/{editable.message_id}/'
     if not os.path.exists(app_json):
         os.makedirs(app_json)
     js = json.dumps(heroku_app, indent=4, separators=(',', ': '))
